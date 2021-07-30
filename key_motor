@@ -1,0 +1,36 @@
+HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_4);
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+		if(HAL_GPIO_ReadPin(KEY1_GPIO_Port,KEY1_Pin)==GPIO_PIN_SET)
+		{
+			HAL_Delay(10);
+			if(HAL_GPIO_ReadPin(KEY1_GPIO_Port,KEY1_Pin)==GPIO_PIN_SET)
+			{
+				angle++;
+				pwmout=angle*11.1+500;
+				if(angle<=180)
+					__HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_4,pwmout);
+				else
+					angle=0;
+			}
+			
+				}
+			else if(HAL_GPIO_ReadPin(KEY2_GPIO_Port,KEY2_Pin)==GPIO_PIN_SET)
+			{
+				HAL_Delay(10);
+				if(HAL_GPIO_ReadPin(KEY2_GPIO_Port,KEY2_Pin)==GPIO_PIN_SET)
+				{
+					angle--;
+					pwmout=angle*11.1+500;
+					if(angle>=0)
+						__HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_4,pwmout);
+						else
+							angle=0;+
+			}
+			
+		}
+    /* USER CODE END WHILE */
