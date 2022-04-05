@@ -1,0 +1,9 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\public.obj",
+".\Objects\key.obj",
+".\Objects\1602.obj",
+".\Objects\ad.obj",
+".\Objects\calculate.obj" 
+TO ".\Objects\EXP7" 
+PRINT(".\Listings\EXP7.m51")

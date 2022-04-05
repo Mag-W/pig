@@ -1,0 +1,63 @@
+C51 COMPILER V9.60.0.0   SERIAL                                                            04/05/2022 16:46:43 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SERIAL
+OBJECT MODULE PLACED IN .\Objects\serial.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Serial\serial.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\public;.\1602;.\key;.\
+                    -AD;.\Serial) DEBUG OBJECTEXTEND PRINT(.\Listings\serial.lst) TABS(2) OBJECT(.\Objects\serial.obj)
+
+line level    source
+
+   1          #include "serial.h"
+   2          
+   3          u8 flag_time=0;
+   4          u8 flag_uart=0;
+   5          u8 buff[];
+   6          u8 num=0;
+   7          
+   8          void init()
+   9          {
+  10   1        //定时器
+  11   1        TH0=(65536-50000)/256;
+  12   1        TL0=(65536-50000)%256;
+  13   1      
+  14   1        TMOD=0x21;
+  15   1        TL1=0xfd;
+  16   1        TH1=0xfd;   //计时器1的溢出率,波特率为9600
+  17   1        TR1=1;
+  18   1        ET0=1;
+  19   1        SM0=0;
+  20   1        SM1=1;
+  21   1        REN=1;
+  22   1        EA=1;
+  23   1        ES=1;
+  24   1      }
+  25          
+  26          
+  27          
+  28          void time0() interrupt 1
+  29          {
+  30   1        TH0=(65536-50000)/256;
+  31   1        TL0=(65536-50000)%256;
+  32   1        num++;
+  33   1        if(num==20)
+  34   1        {
+  35   2          num=0;
+  36   2          flag_time=1;//也就是说每20*50ms中断一次
+  37   2        }
+  38   1      }
+  39          
+  40          
+  41          
+  42          void ser() interrupt 4
+  43          {
+  44   1        RI=0;
+  45   1        buff=SBUF;
+*** ERROR C213 IN LINE 45 OF Serial\serial.c: left side of asn-op not an lvalue
+  46   1        flag_uart=1;
+  47   1      }
+  48          
+  49          
+  50          
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

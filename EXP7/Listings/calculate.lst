@@ -1,0 +1,251 @@
+C51 COMPILER V9.60.0.0   CALCULATE                                                         04/05/2022 23:40:34 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE CALCULATE
+OBJECT MODULE PLACED IN .\Objects\calculate.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Calculator\calculate.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\public;.\1602;.
+                    -\key;.\AD;.\Serial;.\Calculator) DEBUG OBJECTEXTEND PRINT(.\Listings\calculate.lst) TABS(2) OBJECT(.\Objects\calculate.o
+                    -bj)
+
+line level    source
+
+   1          #include "calculate.h"
+   2          
+   3          u8 code  mat[]={'0','1','2','3','4','5','6','7','8','9','+','-','*','/','='};
+   4          
+   5          u16 sum1,sum2;
+   6          float sum3 ; //用于除法
+*** WARNING C231 IN LINE 6 OF Calculator\calculate.c: 'sum3': redefinition
+   7          u8 addflag,subflag,mulflag,divflag;
+   8          u8 keyflag; //  在keyvaluechuli()函数中控制
+   9          u8 flag ;// 控制乘中的sum1;
+  10          
+  11          
+  12          void data_process()  //  0~9
+  13          {
+  14   1         if(key_status2==15)//key15作为清零键
+  15   1         { 
+  16   2          write_com(0x01);
+  17   2         sum1=sum2=0;
+  18   2         addflag=0;
+  19   2         subflag=0;
+  20   2         mulflag=0;
+  21   2         divflag=0;  
+  22   2         }
+  23   1         if(key_status2<10)//即输入0-9数字
+  24   1         {
+  25   2           if(flag==1)   //flag在乘中控制使按下一个数据清除sum1
+  26   2         {
+  27   3          sum1=0;
+  28   3          flag=0;
+  29   3         }
+  30   2          sum1=sum1*10+key_status2;
+  31   2          write_data(mat[key_status2]);//把新输入的数显示
+  32   2         }
+  33   1      }
+  34          
+  35          
+  36          
+  37          
+  38          void add(void)
+  39          {
+  40   1        addflag++;//加法标志位加1
+  41   1        subflag=mulflag=divflag=0;//其他标志位清零
+  42   1        sum2=sum1; //将新输入的sum1送给sum2保存
+  43   1        sum1=0;   //置零
+  44   1      }
+  45          
+  46          void sub(void)
+  47          {
+  48   1        subflag++;
+  49   1        addflag=mulflag=divflag=0;
+  50   1        sum2=sum1; 
+  51   1        sum1=0;
+  52   1      }
+C51 COMPILER V9.60.0.0   CALCULATE                                                         04/05/2022 23:40:34 PAGE 2   
+
+  53          
+  54          void mul(void)
+  55          {
+  56   1        mulflag++;
+  57   1        addflag=subflag=divflag=0;
+  58   1        sum2=sum1;
+  59   1        flag=1;
+  60   1        sum1=0;
+  61   1      }
+  62          
+  63          void div(void)
+  64          {
+  65   1       divflag++;
+  66   1        addflag=subflag=mulflag=0;
+  67   1        sum3=sum1;
+  68   1        sum1=0;
+  69   1      }
+  70          
+  71          
+  72          
+  73          void equal(void)//计算最后的结果
+  74          {
+  75   1        if(addflag)
+  76   1        {
+  77   2          sum2+=sum1;
+  78   2          write_com(0x80+0x4f);//第二行最右边开始
+  79   2          write_com(0x04);//每输入一个字符，就左移一位
+  80   2          
+  81   2          while(sum2!=0)//将sum每一位都从低位依次输出
+  82   2          {
+  83   3            write_data(0x30+sum2%10);//转化为asccii码输出
+  84   3            sum2/=10;//将十位移动个位
+  85   3          }
+  86   2          write_data('=');
+  87   2          addflag=0;
+  88   2        }
+  89   1        
+  90   1        
+  91   1        
+  92   1        else if(subflag)
+  93   1        {
+  94   2          
+  95   2          write_com(0x80+0x4f);//第二行最右边开始
+  96   2          write_com(0x04);//每输入一个字符，就左移一位
+  97   2          
+  98   2        if(sum2>sum1)
+  99   2        {
+ 100   3          sum2-=sum1;
+ 101   3          while(sum2!=0)//将sum每一位都从低位依次输出
+ 102   3          {
+ 103   4            write_data(0x30+sum2%10);//转化为asccii码输出
+ 104   4            sum2/=10;//将十位移动个位
+ 105   4          }
+ 106   3        }
+ 107   2        else if(sum2<sum1)
+ 108   2        {
+ 109   3          sum1-=sum2;
+ 110   3          while(sum1!=0)//将sum每一位都从低位依次输出
+ 111   3          {
+ 112   4            write_data(0x30+sum1%10);//转化为asccii码输出
+ 113   4            sum1/=10;//将十位移动个位
+ 114   4          }
+C51 COMPILER V9.60.0.0   CALCULATE                                                         04/05/2022 23:40:34 PAGE 3   
+
+ 115   3            write_data('-');
+ 116   3        }
+ 117   2        else if(sum2==sum1)
+ 118   2        {
+ 119   3          write_data(0x30+0x00);
+ 120   3        }
+ 121   2        write_data('=');
+ 122   2        subflag=0;
+ 123   2        }
+ 124   1        
+ 125   1        
+ 126   1        //乘法部分
+ 127   1        else if(mulflag)//乘法部分
+ 128   1        {
+ 129   2          sum2*=sum1;
+ 130   2          write_com(0x80+0x4f);//第二行最右边开始
+ 131   2          write_com(0x04);//每输入一个字符，就左移一位
+ 132   2          
+ 133   2          while(sum2!=0)//将sum每一位都从低位依次输出
+ 134   2          {
+ 135   3            write_data(0x30+sum2%10);//转化为asccii码输出
+ 136   3            sum2/=10;//将十位移动个位
+ 137   3          }
+ 138   2          write_data('=');
+ 139   2          mulflag=0;
+ 140   2        }
+ 141   1        
+ 142   1        
+ 143   1        
+ 144   1        //除法部分
+ 145   1        else if(divflag)
+ 146   1        {
+ 147   2          u8 a,c;
+ 148   2          u16 d,e,f;
+ 149   2          float b;
+ 150   2          a=(sum3/sum1)/1;//整数部分
+ 151   2          c=a;
+ 152   2          b=(sum3/sum1)-a;//小数部分，还是浮点数
+ 153   2          sum2=b*100;
+ 154   2          e=b*1000;//乘上1000取整,最后一位作为判断是否要进行四舍五入，实际还是保留两位小数
+ 155   2          d=e%10;//d作为判断位
+ 156   2          if(d>4)
+ 157   2          {
+ 158   3            sum2+=1;
+ 159   3          }
+ 160   2          write_com(0x4f+0x80);
+ 161   2          write_com(0x04);
+ 162   2          while(sum2!=0)//将sum每一位都从低位依次输出
+ 163   2          {
+ 164   3            f++;
+ 165   3            write_data(0x30+sum2%10);//转化为asccii码输出
+ 166   3            sum2/=10;//将十位移动个位
+ 167   3          }
+ 168   2          if(f==1)//这里是在小数部分第一位为零的情况下，补上一个零。比如0.09
+ 169   2          {
+ 170   3           write_data(0x30+0x00);
+ 171   3            f=0;
+ 172   3          }
+ 173   2          write_data('.');
+ 174   2          
+ 175   2          while(a!=0)//将sum每一位都从低位依次输出
+ 176   2          {
+C51 COMPILER V9.60.0.0   CALCULATE                                                         04/05/2022 23:40:34 PAGE 4   
+
+ 177   3            write_data(0x30+a%10);//转化为asccii码输出
+ 178   3            a/=10;//将十位移动个位
+ 179   3          }
+ 180   2          if(c==0)
+ 181   2          {
+ 182   3            write_data(0x30+0x00);//如果商整数部分为0，小数点前面还有个0
+ 183   3          }
+ 184   2          write_data('=');
+ 185   2          divflag=0;
+ 186   2        }
+ 187   1        
+ 188   1      }
+ 189          
+ 190          
+ 191          void cal(void)
+ 192          {
+ 193   1        matrixkeyscan();
+ 194   1        if(key_flag==1)
+ 195   1        {
+ 196   2          key_flag=0;
+ 197   2        switch(key_status2)
+ 198   2        {
+ 199   3          case 10:add();write_data(mat[key_status2]);
+ 200   3          break;
+ 201   3          
+ 202   3          case 11:sub();write_data(mat[key_status2]);
+ 203   3          break;
+ 204   3          
+ 205   3          case 12:mul();write_data(mat[key_status2]);
+ 206   3          break;
+ 207   3          case 13:div();write_data(mat[key_status2]);
+ 208   3          break;
+ 209   3          case 14:equal();
+ 210   3          break;
+ 211   3          default:data_process();
+ 212   3          break;
+ 213   3        }
+ 214   2      }
+ 215   1      }
+ 216          
+ 217          
+ 218          
+ 219          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    885    ----
+   CONSTANT SIZE    =     15    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14      12
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

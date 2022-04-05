@@ -1,0 +1,81 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              04/05/2022 23:40:34 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\public;.\1602;.\key;.\AD;.\Seri
+                    -al;.\Calculator) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /* Created by:               Mag.W
+   2          ** Created date:             2022/4/03
+   3          ** The last updated date:    2022/4/05
+   4          ** Version:                  3.0
+   5          */
+   6          #include "public.h"
+   7          #include "1602.h"
+   8          #include "key.h"
+   9          #include "ad.h"
+  10          #include "string.h"
+  11          #include "calculate.h"
+  12          
+  13          
+  14          void main()
+  15          { 
+  16   1        u16 adc_value=0;
+  17   1        
+  18   1        
+  19   1        lcd_init();//LCD1602初始化
+  20   1      //  lcd1602_show_string(0,0,"Hello World!");//第一行显示
+  21   1      //  lcd1602_show_string(0,1,"0123456789");//第二行显示
+  22   1          //write_data(0x4f+0x80); //从第二行从右向左写数据
+  23   1          //write_com(0x04);
+  24   1        while(1)
+  25   1        {
+  26   2            key_scan();
+  27   2            cal();
+  28   2            adc_value=xpt2046_read_adc_value(0xA4);//测量光敏电阻
+  29   2          
+  30   2          switch(key_status1)
+  31   2          {
+  32   3            case 1:
+  33   3              if(key_flag1==1)
+  34   3              {
+  35   4              key_flag1=0;
+  36   4              lcd_clear();
+  37   4              }
+  38   3              AD_Display(adc_value);
+  39   3              
+  40   3            break;
+  41   3            case 2:if(key_flag1==1)
+  42   3            {
+  43   4              key_flag1=0;
+  44   4              lcd_clear();
+  45   4            }
+  46   3              cal();
+  47   3            break;
+  48   3            case 3:lcd_clear();
+  49   3            break;
+  50   3            default:break;
+  51   3          }
+  52   2        } 
+  53   1      }
+  54          
+C51 COMPILER V9.60.0.0   MAIN                                                              04/05/2022 23:40:34 PAGE 2   
+
+  55          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     75    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
