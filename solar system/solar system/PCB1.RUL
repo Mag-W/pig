@@ -1,0 +1,10 @@
+DRC Rules Export File for PCB: F:\solar system\PCB1.PcbDoc
+RuleKind=Clearance|RuleName=Clearance_3|Scope=Board|Minimum=30.00
+RuleKind=Clearance|RuleName=Clearance_2|Scope=Board|Minimum=30.00
+RuleKind=Clearance|RuleName=Clearance_1|Scope=Board|Minimum=30.00
+RuleKind=Width|RuleName=50mil|Scope=Board|Minimum=10.00
+RuleKind=Width|RuleName=30mil|Scope=Board|Minimum=10.00
+RuleKind=Width|RuleName=all|Scope=Board|Minimum=10.00
+RuleKind=SolderMaskExpansion|RuleName=SolderMaskExpansion|Scope=Board|Minimum=4.00
+RuleKind=Clearance|RuleName=Clearance|Scope=Board|Minimum=2.00
+RuleKind=ShortCircuit|RuleName=ShortCircuit|Scope=Board|Allowed=0

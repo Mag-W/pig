@@ -1,0 +1,201 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              07/04/2022 15:50:03 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\PUBLIC;.\ADC;.\AT24C02;.\I2C;.\
+                    -OLED;.\SERVO) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /* Created by:               Mag.W
+   2          ** Created date:             2022/05/30
+   3          ** The last updated date:    2022/6/14
+   4          ** Version:                  1.0
+   5          */
+   6          
+   7          #include "reg52.h"
+   8          #include "oled.h"
+   9          #include "ADC.h"
+  10          #include "string.h"
+  11          #include "stdio.h"
+  12          #include "servo.h"
+  13          #include <math.h>
+  14          #include "24C02.h"
+  15          sbit beep = P1^2;
+  16          sbit PWM0 = P2^0;
+  17          sbit PWM1 = P2^1;                                                                                         
+             -                    
+  18          //#define Vol_H(x) (uint16_t)ceil(65536-((10.24*x+461)))//高电平计数
+  19          //#define Vol_L(x) (uint16_t)ceil(65536-((18432-(10.24*x+461))))//低电平计数
+  20          #define Vol_H(x) (uint16_t)(65536-(10*x+461))//高电平计数，此法有轻微误差，误差为0.24*x/10.24度
+  21          #define Vol_L(x) (uint16_t)(65536-(18432-(10*x+461)))//低电平计数
+  22          float  adc_val[5];
+  23          uint8_t code adc_chx[5]={ADC_CH0,ADC_CH1,ADC_CH2,ADC_CH3,ADC_CH4};
+  24          
+  25          uint8_t T0_flag,T1_flag;
+  26          uint8_t angle0=5;//上面舵机初始化在5度位置---0-90
+  27          uint8_t angle1=90;//下面舵机初始化在90度位置---0-180
+  28          void Angle_Chg(void);
+  29          void timer_init()//T0和T1定时器初始化
+  30          {
+  31   1        /*0.5ms------65536-461  0°
+  32   1          2.5ms------65536-2304 180°
+  33   1          转动a°-----65536-int(10.24*a+461)
+  34   1          舵机一个周期为20ms------65536-18432
+  35   1          一个周期剩下的低电平计数为65536-（18432-int（10.24*a+461））
+  36   1          */
+  37   1        TMOD=0X11;//两个定时器都工作在方式1
+  38   1        TH0=Vol_H(angle0)/256;   // 
+  39   1        TL0=Vol_H(angle0)%256;   
+  40   1        TH1=Vol_H(angle1)/256;   // 
+  41   1        TL1=Vol_H(angle1)%256;   
+  42   1        EA=1;
+  43   1        ET0=1;
+  44   1        ET1=1;
+  45   1        TR0=1;
+  46   1        TR1=1;
+  47   1      }
+  48          
+  49          
+  50          void main()
+  51          {
+  52   1          uint8_t test=0;
+  53   1          OLED_Init();      //初始化OLED  
+C51 COMPILER V9.60.0.0   MAIN                                                              07/04/2022 15:50:03 PAGE 2   
+
+  54   1          
+  55   1          delayms(1000);
+  56   1          AT24C02_Write(0x00,0x00);
+  57   1          delayms(100);
+  58   1          OLED_ShowString(12,9,"SOLAR SYSTEME: ",16);
+  59   1          OLED_ShowString(0,13,"DESIGNED BY: ",12);
+  60   1          OLED_ShowString(80,15,"MAG.W",12);
+  61   1          delayms(1000);
+  62   1          timer_init();
+  63   1        // OLED_Clear();
+  64   1         // GUI_Axis();
+  65   1        //GUI_Clear();
+  66   1        //OLED_Refresh();
+  67   1       // OLED_Clear();
+  68   1      
+  69   1        while(1)
+  70   1        {
+  71   2         uint8_t i,j;
+  72   2          for(i=0;i<5;i++)
+  73   2          {
+  74   3            adc_val[i]=ADS7830_GetADC_CHx(adc_chx[i]);
+  75   3            }
+  76   2            /*
+  77   2            if(adc_val[4]>5&&adc_val[4]<50)//电源低压报警
+  78   2            {
+  79   2              for(j=0;j<5;j++)
+  80   2              {
+  81   2                beep=~beep;
+  82   2                delayms(100);
+  83   2              }
+  84   2            }
+  85   2            */
+  86   2          
+  87   2          Angle_Chg();//追光函数
+  88   2        /*
+  89   2          OLED_ShowNum(10,0,adc_val[0],3,12);
+  90   2          OLED_ShowNum(50,0,adc_val[1],3,12);
+  91   2          OLED_ShowNum(10,2,adc_val[2],3,12);
+  92   2          OLED_ShowNum(50,2,adc_val[3],3,12);
+  93   2          OLED_ShowNum(50,4,adc_val[4],3,12);
+  94   2           */                                                              
+  95   2              //test=AT24C02_Read(2);
+  96   2          //OLED_ShowNum(10,0,test,3,12);
+  97   2          
+  98   2        }
+  99   1      
+ 100   1      }
+*** WARNING C280 IN LINE 71 OF main.c: 'j': unreferenced local variable
+ 101          
+ 102          void  T0_time() interrupt 1//上面舵机。控制上下
+ 103          {
+ 104   1        if(T0_flag)
+ 105   1        {
+ 106   2          TH0=(Vol_H(angle0))/256;   // 
+ 107   2          TL0=(Vol_H(angle0))%256;   //
+ 108   2          PWM0=1;
+ 109   2        }
+ 110   1        else{
+ 111   2          TH0=(Vol_L(angle0))/256;   // 
+ 112   2          TL0=(Vol_L(angle0))%256;   //
+ 113   2          PWM0=0;
+ 114   2        }
+C51 COMPILER V9.60.0.0   MAIN                                                              07/04/2022 15:50:03 PAGE 3   
+
+ 115   1        
+ 116   1        T0_flag=~T0_flag;
+ 117   1      }
+ 118          
+ 119          void T1_time() interrupt 3//下面舵机，控制左右
+ 120          {
+ 121   1        if(T1_flag)
+ 122   1        {
+ 123   2          TH1=(Vol_H(angle1))/256;   // 
+ 124   2          TL1=(Vol_H(angle1))%256;   //
+ 125   2          PWM1=1;
+ 126   2        }
+ 127   1        else{
+ 128   2          TH1=(Vol_L(angle1))/256;   // 
+ 129   2          TL1=(Vol_L(angle1))%256;   //
+ 130   2          PWM1=0;
+ 131   2        }
+ 132   1        T1_flag=~T1_flag;
+ 133   1      }
+ 134          
+ 135          
+ 136          void Angle_Chg()
+ 137          {
+ 138   1        if(abs(adc_val[0]-adc_val[1])>10)//控制上下转动
+ 139   1        {
+ 140   2          if((adc_val[0]-adc_val[1])>10)
+ 141   2          { 
+ 142   3            angle0-=1;
+ 143   3            if(angle0<8)angle0=8;
+ 144   3          }
+ 145   2          else 
+ 146   2          {
+ 147   3            angle0+=1;    
+ 148   3          
+ 149   3            if(angle0>80)angle0=80;
+ 150   3          }
+ 151   2        }
+ 152   1        
+ 153   1         if(abs(adc_val[2]-adc_val[3])>10)//控制左右旋转
+ 154   1        {
+ 155   2          if((adc_val[2]-adc_val[3])>10)
+ 156   2          {
+ 157   3            angle1-=1;
+ 158   3            if(angle1<5)angle1=5;
+ 159   3          }
+ 160   2          else 
+ 161   2          {
+ 162   3            angle1+=1;    
+ 163   3          
+ 164   3            if(angle1>175)angle1=175;
+ 165   3          }
+ 166   2        }
+ 167   1      }
+ 168          
+ 169          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    595    ----
+   CONSTANT SIZE    =     41    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.60.0.0   MAIN                                                              07/04/2022 15:50:03 PAGE 4   
+
+   DATA SIZE        =     24       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

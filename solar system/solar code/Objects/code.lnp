@@ -1,0 +1,11 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\i2c.obj",
+".\Objects\public.obj",
+".\Objects\adc.obj",
+".\Objects\servo.obj",
+".\Objects\24C02.obj",
+".\Objects\oled.obj" 
+TO ".\Objects\code" 
+PRINT(".\Listings\code.m51") RAMSIZE(256) 
+CODE( 0X0000-0X1FFF )

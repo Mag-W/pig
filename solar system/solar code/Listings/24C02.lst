@@ -1,0 +1,97 @@
+C51 COMPILER V9.60.0.0   24C02                                                             07/04/2022 15:50:03 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE 24C02
+OBJECT MODULE PLACED IN .\Objects\24C02.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE AT24C02\24C02.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\PUBLIC;.\ADC;.\AT24C02
+                    -;.\I2C;.\OLED;.\SERVO) DEBUG OBJECTEXTEND PRINT(.\Listings\24C02.lst) TABS(2) OBJECT(.\Objects\24C02.obj)
+
+line level    source
+
+   1          #include "24C02.h"
+   2          
+   3          
+   4          void AT24C02_Write(uint8_t address,uint8_t date)
+   5          {
+   6   1        I2C_Start();
+   7   1        write_byte(AT24C02_Address_W);
+   8   1        read_ACK();
+   9   1        write_byte(address);
+  10   1        read_ACK();
+  11   1        write_byte(date);
+  12   1        read_ACK();
+  13   1        I2C_Stop();
+  14   1      }
+  15          
+  16          uint8_t AT24C02_Read(uint8_t address)
+  17          {
+  18   1        uint8_t dat;
+  19   1        I2C_Start();
+  20   1        write_byte(AT24C02_Address_W);
+  21   1        read_ACK();
+  22   1        write_byte(address);
+  23   1        read_ACK();
+  24   1        
+  25   1        I2C_Start();
+  26   1        write_byte(AT24C02_Address_R);
+  27   1        read_ACK();
+  28   1        dat=read_byte();
+  29   1        return dat;
+  30   1      }
+  31          
+  32          
+  33          void write_MultipleByte(uint8_t address,uint8_t length,uint8_t *date)    //数据块写入
+  34          { 
+  35   1        I2C_Start();           
+  36   1        write_byte(AT24C02_Address_W);      
+  37   1        read_ACK();         //等待24c02把数据线I2C_SDA拉高,即应答
+  38   1        write_byte(address);//选择写入的24c02地址    
+  39   1        read_ACK();
+  40   1        while(length--)
+  41   1        {
+  42   2          write_byte(*date++);
+  43   2          read_ACK();
+  44   2        }
+  45   1        I2C_Stop();
+  46   1      }
+  47          
+  48          
+  49          void read_MultipleByte(uint8_t *temp,uint8_t address,uint8_t data_size)   //读出多个数据
+  50          {
+  51   1        I2C_Start();
+  52   1        write_byte(AT24C02_Address_W);
+  53   1        read_ACK();
+  54   1        write_byte(address);
+C51 COMPILER V9.60.0.0   24C02                                                             07/04/2022 15:50:03 PAGE 2   
+
+  55   1        read_ACK();
+  56   1        
+  57   1        I2C_Start();
+  58   1        write_byte(AT24C02_Address_R);
+  59   1        read_ACK();
+  60   1        
+  61   1        while(data_size--)
+  62   1        {
+  63   2          *temp++=read_byte();
+  64   2          send_ACK(!data_size);     //主机应答ACK，当data_size = 1时，发送非应答  主机应答，则继续接受数据；不应答
+             -，即表示停止接收
+  65   2        }
+  66   1        I2C_Stop();
+  67   1      }
+  68          
+  69          
+  70          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    211    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      13
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

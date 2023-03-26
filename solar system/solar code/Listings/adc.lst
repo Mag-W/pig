@@ -1,0 +1,49 @@
+C51 COMPILER V9.60.0.0   ADC                                                               07/04/2022 15:50:03 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE ADC
+OBJECT MODULE PLACED IN .\Objects\adc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ADC\adc.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\PUBLIC;.\ADC;.\AT24C02;.\I2C
+                    -;.\OLED;.\SERVO) DEBUG OBJECTEXTEND PRINT(.\Listings\adc.lst) TABS(2) OBJECT(.\Objects\adc.obj)
+
+line level    source
+
+   1          #include "adc.h"
+   2          #include "i2c.h"
+   3          
+   4          
+   5          uint8_t ADS7830_GetADC_CHx(uint8_t ADC_CHx)
+   6          {
+   7   1        uint8_t dat;
+   8   1        I2C_Start();
+   9   1        write_byte(0x90);//发送设备写地址
+  10   1        read_ACK();
+  11   1        write_byte(ADC_CHx);//发送控制字节
+  12   1        read_ACK();
+  13   1        I2C_Stop();
+  14   1        
+  15   1        I2C_Start();
+  16   1        write_byte(0x91);//发送设备读地址
+  17   1        read_ACK();
+  18   1        dat=read_byte();
+  19   1        send_ACK(1);//主机发送非应答信号
+  20   1        I2C_Stop();
+  21   1        return dat;
+  22   1      }
+  23          
+  24          
+  25          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     51    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
