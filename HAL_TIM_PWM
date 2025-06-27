@@ -1,0 +1,32 @@
+uint16_t pwm=10;
+	uint16_t dir=1;
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+		if(dir){
+		
+			__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,pwm);
+			HAL_Delay(50);
+			pwm++;
+			if(pwm>25)
+				dir=0;
+		}   
+
+			else{
+			
+			__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,pwm);
+			
+			HAL_Delay(50);
+				pwm--;
+				if(pwm==0)
+					dir++;
+			
+			
+			}/* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
